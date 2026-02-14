@@ -1,14 +1,21 @@
+import { useAuth } from "@/_core/hooks/useAuth";
 import HeroSection from "@/components/HeroSection";
 import ComponentsSection from "@/components/ComponentsSection";
 import PipelineSection from "@/components/PipelineSection";
 import ResourcesSection from "@/components/ResourcesSection";
+import VoiceTestSection from "@/components/VoiceTestSection";
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <HeroSection />
       <ComponentsSection />
       <PipelineSection />
+      <VoiceTestSection />
       <ResourcesSection />
       
       {/* Footer */}
@@ -30,6 +37,7 @@ export default function Home() {
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#components" className="hover:text-white transition">المكونات</a></li>
                 <li><a href="#pipeline" className="hover:text-white transition">دورة العمل</a></li>
+                <li><a href="#test" className="hover:text-white transition">اختبر الآن</a></li>
                 <li><a href="#resources" className="hover:text-white transition">الموارد</a></li>
               </ul>
             </div>
