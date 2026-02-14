@@ -7,14 +7,14 @@ export default function ResourcesSection() {
     {
       title: "Whisper Saudi",
       description: "نموذج متخصص في التعرف على الكلام باللهجة السعودية",
-      link: "https://huggingface.co/athenasaurav/whisper-small-arabic-saudi",
+      link: "https://huggingface.co/speechbrain/asr-whisper-large-v2-commonvoice-ar",
       icon: "🎤",
       tags: ["STT", "Speech Recognition", "Arabic"]
     },
     {
       title: "ALLaM",
       description: "نموذج لغوي كبير سعودي متقدم للفهم والمعالجة",
-      link: "https://huggingface.co/humain-ai/ALLaM-7B-Instruct-preview",
+      link: "https://huggingface.co/ALLaM-AI/ALLaM-7B-Instruct-preview",
       icon: "🧠",
       tags: ["LLM", "Language Model", "Arabic"]
     },
