@@ -163,25 +163,29 @@ export async function generateResponse(userText: string): Promise<string> {
 // ============================================================================
 
 const NAMAA_SPACE_URL = "https://omarelshehy-namaa-saudi-voice.hf.space/gradio_api";
-const FALLBACK_TTS_URL = "https://api-inference.huggingface.co/models/facebook/mms-tts-ara"; // موديل عربي احتياطي خفيف
 
 /**
  * تحويل النص إلى كلام باستخدام NAMAA-Saudi-TTS عبر Gradio Space
- * 
- * يستخدم Gradio async API ذي خطوتين:
- * 1. إرسال الطلب -> الحصول على event_id
- * 2. استقبال النتيجة عبر SSE -> URL الملف الصوتي
- * 3. تحميل الملف الصوتي وتحويله إلى Buffer
  */
 export async function synthesizeSpeech(text: string): Promise<Buffer> {
-  const MAX_TTS_RETRIES = 3;
+  const MAX_TTS_RETRIES = 2; // تقليل عدد المحاولات لتوفير الوقت في بيئة Serverless
+
+  // إذا كان النص طويلاً جداً، قد يأخذ وقتاً طويلاً جداً في المعالجة
+  if (text.length > 300) {
+    console.warn("⚠️ النص طويل جداً، سيتم اختصاره للمعالجة الصوتية لتجنب انتهاء المهلة");
+    text = text.substring(0, 300) + "...";
+  }
 
   for (let attempt = 1; attempt <= MAX_TTS_RETRIES; attempt++) {
     try {
-      console.log(`🔊 NAMAA TTS (محاولة ${attempt}/${MAX_TTS_RETRIES}): "${text.substring(0, 50)}..."`);
+      console.log(`🔊 NAMAA TTS (محاولة ${attempt}/${MAX_TTS_RETRIES}): "${text.substring(0, 40)}..."`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // مهلة 20 ثانية للطلب بالكامل
 
       const callResponse = await fetch(`${NAMAA_SPACE_URL}/call/generate_tts_audio`, {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           ...(ENV.huggingfaceApiKey ? { Authorization: `Bearer ${ENV.huggingfaceApiKey}` } : {}),
@@ -189,17 +193,27 @@ export async function synthesizeSpeech(text: string): Promise<Buffer> {
         body: JSON.stringify({ data: [text, null, 0.5, 0.8, 0, 0.5] }),
       });
 
-      if (!callResponse.ok) throw new Error(`HTTP ${callResponse.status}`);
+      if (!callResponse.ok) {
+        clearTimeout(timeoutId);
+        throw new Error(`HTTP ${callResponse.status}`);
+      }
+
       const { event_id } = (await callResponse.json()) as { event_id: string };
 
       const resultResponse = await fetch(`${NAMAA_SPACE_URL}/call/generate_tts_audio/${event_id}`, {
         method: "GET",
-        signal: AbortSignal.timeout(60_000),
+        signal: controller.signal,
         headers: { ...(ENV.huggingfaceApiKey ? { Authorization: `Bearer ${ENV.huggingfaceApiKey}` } : {}) },
       });
 
-      if (!resultResponse.ok) throw new Error("SSE Failed");
+      if (!resultResponse.ok) {
+        clearTimeout(timeoutId);
+        throw new Error("SSE Failed");
+      }
+
       const sseText = await resultResponse.text();
+      clearTimeout(timeoutId);
+
       if (sseText.includes("event: error")) throw new Error("Gradio/Quota Error");
 
       const lines = sseText.split("\n");
@@ -217,7 +231,7 @@ export async function synthesizeSpeech(text: string): Promise<Buffer> {
 
       if (audioUrl) {
         const audioResponse = await fetch(audioUrl, {
-          signal: AbortSignal.timeout(30_000),
+          signal: AbortSignal.timeout(10000), // مهلة 10 ثوانٍ لتحميل الملف
           headers: { ...(ENV.huggingfaceApiKey ? { Authorization: `Bearer ${ENV.huggingfaceApiKey}` } : {}) },
         });
         if (audioResponse.ok) {
@@ -227,11 +241,19 @@ export async function synthesizeSpeech(text: string): Promise<Buffer> {
         }
       }
     } catch (error) {
-      console.warn(`⚠️ NAMAA محاولة ${attempt} فشلت:`, (error as Error).message);
-      if (attempt < MAX_TTS_RETRIES) await new Promise(r => setTimeout(r, 2000 * attempt));
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.warn(`⚠️ NAMAA محاولة ${attempt} فشلت:`, errorMsg);
+      if (errorMsg.includes("abort")) {
+        console.warn("🛑 انتهت مهلة طلب TTS (Timeout)");
+        break; // التوقف عن المحاولة إذا انتهت المهلة
+      }
+      if (attempt < MAX_TTS_RETRIES) await new Promise(r => setTimeout(r, 1000));
     }
   }
-  throw new Error("فشل NAMAA TTS بعد جميع المحاولات.");
+
+  // إذا وصلنا إلى هنا، فهذا يعني أن NAMAA فشل.
+  // في المستقبل يمكن إضافة موديل احتياطي (Fallback Model) هنا.
+  throw new Error("فشل NAMAA TTS أو انتهت المهلة.");
 }
 
 // ============================================================================
