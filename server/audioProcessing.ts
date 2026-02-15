@@ -163,6 +163,7 @@ export async function generateResponse(userText: string): Promise<string> {
 // ============================================================================
 
 const NAMAA_SPACE_URL = "https://omarelshehy-namaa-saudi-voice.hf.space/gradio_api";
+const FALLBACK_TTS_URL = "https://api-inference.huggingface.co/models/facebook/mms-tts-ara"; // موديل عربي احتياطي خفيف
 
 /**
  * تحويل النص إلى كلام باستخدام NAMAA-Saudi-TTS عبر Gradio Space
@@ -173,78 +174,64 @@ const NAMAA_SPACE_URL = "https://omarelshehy-namaa-saudi-voice.hf.space/gradio_a
  * 3. تحميل الملف الصوتي وتحويله إلى Buffer
  */
 export async function synthesizeSpeech(text: string): Promise<Buffer> {
-  try {
-    console.log(`🔊 TTS: تحويل النص إلى كلام: "${text.substring(0, 50)}..."`);
+  const MAX_TTS_RETRIES = 3;
 
-    // الخطوة 1: إرسال الطلب والحصول على event_id
-    const callResponse = await fetch(`${NAMAA_SPACE_URL}/call/generate_tts_audio`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: [
-          text,   // النص
-          null,   // صوت مرجعي (اختياري - نستخدم الافتراضي)
-          0.5,    // Exaggeration
-          0.8,    // Temperature
-          0,      // Seed
-          0.5,    // CFG / Pace
-        ],
-      }),
-    });
+  for (let attempt = 1; attempt <= MAX_TTS_RETRIES; attempt++) {
+    try {
+      console.log(`🔊 NAMAA TTS (محاولة ${attempt}/${MAX_TTS_RETRIES}): "${text.substring(0, 50)}..."`);
 
-    if (!callResponse.ok) {
-      const errText = await callResponse.text().catch(() => "");
-      throw new Error(`فشل إرسال طلب TTS (HTTP ${callResponse.status}): ${errText.substring(0, 200)}`);
+      const callResponse = await fetch(`${NAMAA_SPACE_URL}/call/generate_tts_audio`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(ENV.huggingfaceApiKey ? { Authorization: `Bearer ${ENV.huggingfaceApiKey}` } : {}),
+        },
+        body: JSON.stringify({ data: [text, null, 0.5, 0.8, 0, 0.5] }),
+      });
+
+      if (!callResponse.ok) throw new Error(`HTTP ${callResponse.status}`);
+      const { event_id } = (await callResponse.json()) as { event_id: string };
+
+      const resultResponse = await fetch(`${NAMAA_SPACE_URL}/call/generate_tts_audio/${event_id}`, {
+        method: "GET",
+        signal: AbortSignal.timeout(60_000),
+        headers: { ...(ENV.huggingfaceApiKey ? { Authorization: `Bearer ${ENV.huggingfaceApiKey}` } : {}) },
+      });
+
+      if (!resultResponse.ok) throw new Error("SSE Failed");
+      const sseText = await resultResponse.text();
+      if (sseText.includes("event: error")) throw new Error("Gradio/Quota Error");
+
+      const lines = sseText.split("\n");
+      let audioUrl: string | undefined;
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const raw = line.slice(6).trim();
+        if (!raw || raw === "null") continue;
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed[0]?.url) audioUrl = parsed[0].url;
+          else if (Array.isArray(parsed) && parsed[0]?.path) audioUrl = `${NAMAA_SPACE_URL}/file=${parsed[0].path}`;
+        } catch { /* skip */ }
+      }
+
+      if (audioUrl) {
+        const audioResponse = await fetch(audioUrl, {
+          signal: AbortSignal.timeout(30_000),
+          headers: { ...(ENV.huggingfaceApiKey ? { Authorization: `Bearer ${ENV.huggingfaceApiKey}` } : {}) },
+        });
+        if (audioResponse.ok) {
+          const buffer = Buffer.from(await audioResponse.arrayBuffer());
+          console.log(`✅ NAMAA TTS: تم بنجاح`);
+          return buffer;
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️ NAMAA محاولة ${attempt} فشلت:`, (error as Error).message);
+      if (attempt < MAX_TTS_RETRIES) await new Promise(r => setTimeout(r, 2000 * attempt));
     }
-
-    const { event_id } = (await callResponse.json()) as { event_id: string };
-    console.log(`📋 TTS event_id: ${event_id}`);
-
-    // الخطوة 2: انتظار النتيجة عبر SSE (Server-Sent Events)
-    const resultResponse = await fetch(
-      `${NAMAA_SPACE_URL}/call/generate_tts_audio/${event_id}`,
-      { method: "GET", signal: AbortSignal.timeout(120_000) }
-    );
-
-    if (!resultResponse.ok) {
-      throw new Error(`فشل استقبال نتيجة TTS (HTTP ${resultResponse.status})`);
-    }
-
-    const sseText = await resultResponse.text();
-
-    // تحليل استجابة SSE للحصول على URL الملف
-    const dataLine = sseText.split("\n").find(line => line.startsWith("data: "));
-    if (!dataLine) {
-      throw new Error("لم يتم العثور على بيانات في استجابة TTS");
-    }
-
-    const data = JSON.parse(dataLine.replace("data: ", ""));
-    const audioUrl = data[0]?.url;
-
-    if (!audioUrl) {
-      throw new Error("لم يتم العثور على رابط الملف الصوتي في استجابة TTS");
-    }
-
-    console.log(`🔗 TTS audio URL: ${audioUrl}`);
-
-    // الخطوة 3: تحميل الملف الصوتي
-    const audioResponse = await fetch(audioUrl, {
-      signal: AbortSignal.timeout(30_000),
-    });
-
-    if (!audioResponse.ok) {
-      throw new Error(`فشل تحميل الملف الصوتي (HTTP ${audioResponse.status})`);
-    }
-
-    const arrayBuffer = await audioResponse.arrayBuffer();
-    const audioBuffer = Buffer.from(arrayBuffer);
-    console.log(`✓ TTS: تم تحميل الملف الصوتي (${(audioBuffer.length / 1024).toFixed(1)} KB)`);
-
-    return audioBuffer;
-  } catch (error) {
-    console.error("❌ خطأ في تحويل النص إلى كلام:", error);
-    throw error;
   }
+  throw new Error("فشل NAMAA TTS بعد جميع المحاولات.");
 }
 
 // ============================================================================
