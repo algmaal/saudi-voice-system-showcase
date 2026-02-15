@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import HeroSection from "@/components/HeroSection";
 import ComponentsSection from "@/components/ComponentsSection";
 import PipelineSection from "@/components/PipelineSection";
+import UseCasesSection from "@/components/UseCasesSection";
 import ResourcesSection from "@/components/ResourcesSection";
 import VoiceTestSection from "@/components/VoiceTestSection";
 
@@ -15,9 +16,10 @@ export default function Home() {
       <HeroSection />
       <ComponentsSection />
       <PipelineSection />
+      <UseCasesSection />
       <VoiceTestSection />
       <ResourcesSection />
-      
+
       {/* Footer */}
       <footer className="w-full bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
@@ -37,6 +39,7 @@ export default function Home() {
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#components" className="hover:text-white transition">المكونات</a></li>
                 <li><a href="#pipeline" className="hover:text-white transition">دورة العمل</a></li>
+                <li><a href="#use-cases" className="hover:text-white transition">حالات الاستخدام</a></li>
                 <li><a href="#test" className="hover:text-white transition">اختبر الآن</a></li>
                 <li><a href="#resources" className="hover:text-white transition">الموارد</a></li>
               </ul>

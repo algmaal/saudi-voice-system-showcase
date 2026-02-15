@@ -25,6 +25,7 @@ export const voiceRouter = router({
           success: true,
           transcription: result.transcription,
           response: result.response,
+          responseAudioBase64: result.responseAudioBase64 || "",
           processingTime: result.processingTime,
         };
       } catch (error) {
@@ -34,6 +35,7 @@ export const voiceRouter = router({
           error: error instanceof Error ? error.message : "حدث خطأ أثناء معالجة الملف الصوتي",
           transcription: "",
           response: "",
+          responseAudioBase64: "",
           processingTime: 0,
         };
       }
