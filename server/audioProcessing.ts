@@ -103,7 +103,7 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
 /**
  * معالجة النص باستخدام نموذج لغة كبير
  * Endpoint: router.huggingface.co/v1/chat/completions (OpenAI-compatible)
- * النموذج: meta-llama/Llama-3.1-8B-Instruct
+ * النموذج: humain-ai/ALLaM-7B-Instruct-preview
  */
 export async function generateResponse(userText: string): Promise<string> {
   if (!ENV.huggingfaceApiKey) {
@@ -124,7 +124,7 @@ export async function generateResponse(userText: string): Promise<string> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "meta-llama/Llama-3.1-8B-Instruct",
+          model: "humain-ai/ALLaM-7B-Instruct-preview",
           messages: [
             {
               role: "system",
