@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
 export default function HeroSection() {
-  const heroImageUrl = "https://private-us-east-1.manuscdn.com/sessionFile/GFxqvHr2TLZr2VLJZ2n8uF/sandbox/TzH7rfx4jIQKSbhT3IVJWB-img-1_1771098921000_na1fn_aGVyby1iYW5uZXI.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvR0Z4cXZIcjJUTFpyMlZMSloybjh1Ri9zYW5kYm94L1R6SDdyZng0aklRS1NiaFQzSVZKV0ItaW1nLTFfMTc3MTA5ODkyMTAwMF9uYTFmbl9hR1Z5YnkxaVlXNXVaWEkucG5nP3gtb3NzLXByb2Nlc3M9aW1hZ2UvcmVzaXplLHdfMTkyMCxoXzE5MjAvZm9ybWF0LHdlYnAvcXVhbGl0eSxxXzgwIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzk4NzYxNjAwfX19XX0_&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=Sr5OFBhkmZdpA~3N5xaj83F5fbkZSZ7KuvjjND8SjchrVrigpQ1Ghn3W8ldTTfTWH5soBQr2n8x9Xno0azXa9SxhT0mx~vK~zEDBbmtZZHU9McuzBPyOlkUY2rUSvC3FYkkMZSSD4vQPj-3chk7V8-hgupXVdm2JKFk8hboYaZTXJ05o0h3NJoHLR0JO3JEpuTdSKXMhpi2gRYC5vrglGIj8YfIMNiPqoZ0u-MpizzvSs6i2KqHCxBCf9tjr6KuyJquqsboq2pTLqwyfgk1c3KzxwJaFGzJLVclgNjZ5yw0hm9c6OzU~J~-tQnquf67zXCYiSdVX23CqwsZBP2BRXw__";
+  const heroImageUrl = "/assets/hero.png";
 
   return (
     <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -26,16 +26,16 @@ export default function HeroSection() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg"
                 onClick={() => document.getElementById('components')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 اكتشف المكونات
                 <ArrowRight className="mr-2 h-5 w-5" />
               </Button>
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 variant="outline"
                 className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-6 text-lg"
                 onClick={() => document.getElementById('pipeline')?.scrollIntoView({ behavior: 'smooth' })}
@@ -62,7 +62,7 @@ export default function HeroSection() {
 
           {/* Right image */}
           <div className="relative h-96 lg:h-full min-h-96 flex items-center justify-center">
-            <img 
+            <img
               src={heroImageUrl}
               alt="Saudi Voice System"
               className="w-full h-full object-cover rounded-2xl shadow-2xl"

@@ -6,7 +6,7 @@ export default function PipelineSection() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
-  const pipelineImageUrl = "https://private-us-east-1.manuscdn.com/sessionFile/GFxqvHr2TLZr2VLJZ2n8uF/sandbox/TzH7rfx4jIQKSbhT3IVJWB-img-5_1771098916000_na1fn_cGlwZWxpbmUtZGlhZ3JhbQ.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80";
+  const pipelineImageUrl = "/assets/pipeline.png";
 
   const steps = [
     {
@@ -72,7 +72,7 @@ export default function PipelineSection() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="flex justify-center">
-            <img 
+            <img
               src={pipelineImageUrl}
               alt="Pipeline Diagram"
               className="w-full max-w-md h-auto"
@@ -82,11 +82,11 @@ export default function PipelineSection() {
           <div className="space-y-6">
             {steps.map((step, index) => {
               const isActive = index <= currentStep;
-              const bgClass = isActive 
-                ? `bg-gradient-to-r ${step.color} text-white shadow-lg scale-105` 
+              const bgClass = isActive
+                ? `bg-gradient-to-r ${step.color} text-white shadow-lg scale-105`
                 : 'bg-white text-gray-900 border-2 border-gray-200';
-              const numberBgClass = isActive 
-                ? 'bg-white text-blue-600' 
+              const numberBgClass = isActive
+                ? 'bg-white text-blue-600'
                 : 'bg-gray-200 text-gray-600';
 
               return (
@@ -115,11 +115,10 @@ export default function PipelineSection() {
               <Button
                 onClick={handlePlayAnimation}
                 size="lg"
-                className={`px-8 py-6 text-lg font-semibold text-white ${
-                  isAnimating
+                className={`px-8 py-6 text-lg font-semibold text-white ${isAnimating
                     ? 'bg-red-600 hover:bg-red-700'
                     : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+                  }`}
               >
                 {isAnimating ? (
                   <>

@@ -190,8 +190,8 @@ function writeString(view: DataView, offset: number, str: string) {
 // ============================================================================
 
 const VAD_SILENCE_THRESHOLD = 0.015;  // عتبة RMS للصمت
-const VAD_SILENCE_DURATION = 2000;    // مدة الصمت قبل الإيقاف (2 ثواني)
-const VAD_MIN_RECORDING_MS = 1500;    // أقل مدة تسجيل قبل السماح بالإيقاف
+const VAD_SILENCE_DURATION = 5000;    // مدة الصمت قبل الإيقاف (5 ثواني)
+const VAD_MIN_RECORDING_MS = 2000;    // أقل مدة تسجيل قبل السماح بالإيقاف
 const VAD_MAX_RECORDING_MS = 30000;   // أقصى مدة تسجيل (30 ثانية)
 
 // ============================================================================

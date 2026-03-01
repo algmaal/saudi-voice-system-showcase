@@ -42,9 +42,8 @@ const QUESTIONS: QuestionDef[] = [
         label: "الاسم",
         question: "", // فارغ لأن الترحيب يسأل عن الاسم
         extractPrompt:
-            'استخرج اسم الشخص الكامل من هذا النص. إذا ذكر اسمه أرجع الاسم فقط بدون أي كلام إضافي. إذا لم يذكر اسمه أرجع "غير_محدد".',
-        validationPrompt:
-            'هل هذا النص يحتوي على اسم شخص؟ أجب بـ "نعم" أو "لا" فقط. النص: ',
+            'استخرج اسم الشخص الكامل من هذا النص. تجاهل كلمات التحية مثل "مرحبا" أو "أهلاً" أو "السلام عليكم" واستخرج الاسم فقط. إذا ذكر اسمه أرجع الاسم فقط بدون أي كلام إضافي. إذا لم يذكر اسمه أرجع "غير_محدد".',
+        validationPrompt: "", // تخطي التحقق — الاستخراج وحده كافي للاسم
         retryMessages: [
             "عذراً ما سمعت اسمك زين، ممكن تعيد لي اسمك الكامل مرة ثانية؟",
             "ما عليك أمر، بس أبي اسمك الكامل يعني الاسم الأول واسم العائلة؟",
@@ -237,7 +236,7 @@ async function callLLM(systemPrompt: string, userMessage: string, maxTokens = 50
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            model: "humain-ai/ALLaM-7B-Instruct-preview",
+            model: "meta-llama/Llama-3.1-8B-Instruct",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userMessage },

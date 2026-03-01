@@ -124,7 +124,7 @@ export async function generateResponse(userText: string): Promise<string> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "humain-ai/ALLaM-7B-Instruct-preview",
+          model: "meta-llama/Llama-3.1-8B-Instruct",
           messages: [
             {
               role: "system",
